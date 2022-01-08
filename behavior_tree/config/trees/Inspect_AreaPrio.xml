@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <Fallback>
+            <ReactiveSequence>
+                <Condition ID="Continue"/>
+                <Condition ID="IsBatteryOK"/>
+                <KeepRunningUntilFailure>
+                    <Sequence>
+                        <Sequence>
+                            <Fallback>
+                                <Condition ID="IsExploreAreaDone"/>
+                                <Action ID="Explore" timeout="0.0"/>
+                            </Fallback>
+                            <Fallback>
+                                <Condition ID="IsInspectAreaDone"/>
+                                <Action ID="Inspect" timeout="0.0"/>
+                            </Fallback>
+                        </Sequence>
+                        <Inverter>
+                            <Sequence>
+                                <Condition ID="IsExploreDone"/>
+                                <Condition ID="IsInspectDone"/>
+                            </Sequence>
+                        </Inverter>
+                        <Action ID="MoveToNextArea" timeout="0.0"/>
+                    </Sequence>
+                </KeepRunningUntilFailure>
+            </ReactiveSequence>
+            <Action ID="GoHome" timeout="0.0"/>
+        </Fallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Condition ID="Continue"/>
+        <Condition ID="IsBatteryOK"/>
+        <Condition ID="IsExploreAreaDone"/>
+        <Condition ID="IsExploreDone"/>
+        <Condition ID="IsInspectAreaDone"/>
+        <Condition ID="IsInspectDone"/>
+        <Action ID="Explore">
+            <input_port default="0.0" name="timeout">Time, in seconds, allowed before forcing FAILURE. If timeout = 0, then the the timeout is disabled.</input_port>
+        </Action>
+        <Action ID="Inspect">
+            <input_port default="0.0" name="timeout">Time, in seconds, allowed before forcing FAILURE. If timeout = 0, then the the timeout is disabled.</input_port>
+        </Action>
+        <Action ID="MoveToNextArea">
+            <input_port default="0.0" name="timeout">Time, in seconds, allowed before forcing FAILURE. If timeout = 0, then the the timeout is disabled.</input_port>
+        </Action>
+        <Action ID="GoHome">
+            <input_port default="0.0" name="timeout">Time, in seconds, allowed before forcing FAILURE. If timeout = 0, then the the timeout is disabled.</input_port>
+        </Action>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
+

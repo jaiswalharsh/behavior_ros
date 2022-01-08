@@ -1,0 +1,23 @@
+<root>
+    <TreeNodesModel>
+        <Condition ID="Continue"/>
+        <Condition ID="IsBatteryOK"/>
+        <Condition ID="IsExploreAreaDone"/>
+        <Condition ID="IsExploreDone"/>
+        <Condition ID="IsInspectAreaDone"/>
+        <Condition ID="IsInspectDone"/>
+        <Action ID="Explore">
+            <input_port default="0.0" name="timeout">Time, in seconds, allowed before forcing FAILURE. If timeout = 0, then the the timeout is disabled.</input_port>
+        </Action>
+        <Action ID="Inspect">
+            <input_port default="0.0" name="timeout">Time, in seconds, allowed before forcing FAILURE. If timeout = 0, then the the timeout is disabled.</input_port>
+        </Action>
+        <Action ID="MoveToNextArea">
+            <input_port default="0.0" name="timeout">Time, in seconds, allowed before forcing FAILURE. If timeout = 0, then the the timeout is disabled.</input_port>
+        </Action>
+        <Action ID="GoHome">
+            <input_port default="0.0" name="timeout">Time, in seconds, allowed before forcing FAILURE. If timeout = 0, then the the timeout is disabled.</input_port>
+        </Action>
+    </TreeNodesModel>
+</root>
+

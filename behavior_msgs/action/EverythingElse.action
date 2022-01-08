@@ -1,0 +1,8 @@
+# Goal
+---
+# Result
+bool success # Successfully moved to home pose?
+# geometry_msgs/PoseStamped final_pose # Pose reached
+
+---
+# Feedback

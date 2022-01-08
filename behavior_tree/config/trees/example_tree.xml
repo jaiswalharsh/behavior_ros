@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <KeepRunningUntilFailure>
+            <Fallback>
+                <Delay delay_msec="1000">
+                    <AlwaysFailure/>
+                </Delay>
+                <Delay delay_msec="1000">
+                    <AlwaysSuccess/>
+                </Delay>
+            </Fallback>
+        </KeepRunningUntilFailure>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel/>
+    <!-- ////////// -->
+</root>
+

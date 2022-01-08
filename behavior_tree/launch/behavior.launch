@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+  <!-- Arguments -->
+  <arg name="tree_xml_path" default="$(find behavior_tree)/config/trees/<tree XML file name>.xml" />
+  <arg name="tree_log_directory" default="$(find behavior_tree)/log/" />
+  <arg name="tree_tick_freq" default="100" />
+  <arg name="live_monitoring" default="true" />
+  <arg name="live_monitoring_console" default="false" />
+  <arg name="logging" default="true" />
+
+
+  <!-- Some node -->
+  <node name="inspection_behavior_node" pkg="behavior_tree" type="inspection_behavior_node" output="screen">
+    <param name="tree_xml_path" value="$(arg tree_xml_path)" />
+    <param name="tree_log_directory" value="$(arg tree_log_directory)" />
+    <param name="tree_tick_freq" value="$(arg tree_tick_freq)" />
+    <param name="live_monitoring" value="$(arg live_monitoring)" />
+    <param name="live_monitoring_console" value="$(arg live_monitoring_console)" />
+    <param name="logging" value="$(arg logging)" />
+  </node>
+  
+</launch>
