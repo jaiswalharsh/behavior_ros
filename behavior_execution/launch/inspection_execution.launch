@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+  <!-- Shared -->
+  <arg name="ns_inspection" default="/inspection" />
+
+  <group ns="$(arg ns_inspection)">
+
+    <!-- Inspection node -->
+    <node name="inspection_node" pkg="behavior_execution" type="inspection_execution_node" output="screen">
+    <!-- moveSpeed: Movement speed in m/s -->
+      <param name="moveSpeed" type="double" value="1.0" />
+      <param name="requiredCorrectionNo" type="int" value="4" /> 
+    </node>
+
+  </group>
+
+</launch>

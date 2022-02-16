@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>behavior_ros</name>
+  <version>0.0.0</version>
+  <description>Autonomous MAV-based exploration and inspection</description>
+
+  <author email="jaiswal.h@outlook.com">Harsh Jaiswal</author>
+  <maintainer email="jaiswal.h@outlook.com">Harsh Jaiswal</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>behavior_msgs</exec_depend>
+  <exec_depend>behavior_tree</exec_depend>
+  <exec_depend>behavior_execution</exec_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

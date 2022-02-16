@@ -1,0 +1,11 @@
+<launch>
+  <!-- Packages -->
+  <arg name="inspection_package" default="$(find behavior_execution)/launch/inspection_execution.launch" />
+  <arg name="behavior_package" default="$(find behavior_tree)/launch/behavior.launch" />
+
+
+  <include file="$(arg inspection_package)" />
+
+  <include file="$(arg behavior_package)" />
+
+</launch>

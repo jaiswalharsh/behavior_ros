@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
   <!-- Arguments -->
-  <arg name="tree_xml_path" default="$(find behavior_tree)/config/trees/<tree XML file name>.xml" />
+  <arg name="tree_xml_path" default="$(find behavior_tree)/config/trees/tank_entrance.xml" />
   <arg name="tree_log_directory" default="$(find behavior_tree)/log/" />
   <arg name="tree_tick_freq" default="100" />
   <arg name="live_monitoring" default="true" />

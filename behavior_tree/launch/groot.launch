@@ -2,4 +2,6 @@
 <launch>
   <!-- Convenience launch file for launching Groot - the behavior tree editor -->
   <node name="groot" pkg="groot" type="Groot" output="screen" />
+
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find behavior_tree)/rviz_config/def.rviz" />
 </launch>

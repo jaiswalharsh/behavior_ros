@@ -1,6 +1,6 @@
 #include "behaviortree_cpp_v3/bt_factory.h"
 
-// #define MANUAL_STATIC_LINKING
+//#define MANUAL_STATIC_LINKING
 
 #ifdef MANUAL_STATIC_LINKING
 #include "dummy_nodes.h"

@@ -11,9 +11,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+else()
+    add_definitions(-Wpedantic)
 endif()
-
-add_definitions(-Wpedantic)
 
 #---- Include boost to add coroutines ----
 find_package(Boost COMPONENTS coroutine QUIET)
@@ -241,8 +241,14 @@ else()
 endif()
 
 ######################################################
+# Samples
+if (BUILD_SAMPLES)
+    add_subdirectory(sample_nodes)
+endif()
+
+######################################################
 # Test
-if (BUILD_UNIT_TESTS)
+if (BUILD_UNIT_TESTS AND BUILD_SAMPLES)
     add_subdirectory(tests)
 endif()
 
@@ -276,7 +282,6 @@ if(BUILD_TOOLS)
     add_subdirectory(tools)
 endif()
 
-if( BUILD_EXAMPLES )
-    add_subdirectory(sample_nodes)
+if(BUILD_EXAMPLES AND BUILD_SAMPLES)
     add_subdirectory(examples)
 endif()

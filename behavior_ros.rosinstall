@@ -1,0 +1,8 @@
+- git:
+    local-name: BehaviorTree.CPP
+    uri: https://github.com/BehaviorTree/BehaviorTree.CPP.git
+    version: 3.6.0
+- git:
+    local-name: Groot
+    uri: https://github.com/BehaviorTree/Groot
+    version: 05fe640172e3cd447ab5db31f71355789f6a48b3

@@ -4,8 +4,16 @@
 #include <behaviortree_cpp_v3/bt_factory.h>
 #include <behaviortree_cpp_v3/behavior_tree.h>
 
-#include <behavior_msgs/EverythingElseAction.h>
+#include <behavior_msgs/PublishLastStablePoseAction.h>
 #include <behavior_msgs/TakeOffAction.h>
+#include <behavior_msgs/LookForEntranceAction.h>
+#include <behavior_msgs/WaitToConfirmEntranceAction.h>
+#include <behavior_msgs/GetEntranceFrontPointAndMoveAction.h>
+#include <behavior_msgs/CorrectPoseAction.h>
+#include <behavior_msgs/EnterTankAction.h>
+#include <behavior_msgs/LandAction.h>
+#include <behavior_msgs/DemoPathAction.h>
+#include <behavior_msgs/MappingTemplateAction.h>
 
 #include <sensor_msgs/BatteryState.h>
 
@@ -49,104 +57,468 @@ Pose3D convertFromString(StringView key)
 
 namespace MAVInspectionNodes {
 
-std::string execution_ns_ = "/behavior_node";
+  std::string execution_ns_ = "/inspection/inspection_node";
 
-sensor_msgs::BatteryState *batt_ptr;
-double batt_limit = 20.0; // Remaining capacity percentage
+  sensor_msgs::BatteryState *batt_ptr;
+  double batt_limit = 20.0; // Remaining capacity percentage
 
-bool *cont_ptr;
-void setBatteryPtr(sensor_msgs::BatteryState *battery_msg_ptr);
-void setBatteryLimit(double limit);
-void setContinuePtr(bool *continue_ptr);
+  bool *cont_ptr;
+  void setBatteryPtr(sensor_msgs::BatteryState *battery_msg_ptr);
+  void setBatteryLimit(double limit);
+  void setContinuePtr(bool *continue_ptr);
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////// CONDITIONS ////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////// CONDITIONS ////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////
 
-BT::NodeStatus CheckContinue();
-BT::NodeStatus CheckBattery();
+  BT::NodeStatus CheckContinue();
+  BT::NodeStatus CheckBattery();
 
-/////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////// ACTIONS ////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////// ACTIONS ////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////// Take Off action ////////////////////////////////////////
+  //////////////////////////////////////// Take Off action ////////////////////////////////////////
 
-// Asynchronous action
-class TakeOffAction : public BT::AsyncActionNode
-{
-public:
-  // Any TreeNode with ports must have a constructor with this signature
-  TakeOffAction(const std::string &name, const BT::NodeConfiguration &config)
-      : AsyncActionNode(name, config),
-      ac_(execution_ns_ + "/takeoff", true)
+  // Asynchronous action
+  class TakeOffAction : public BT::AsyncActionNode
   {
-  }
+  public:
+    // Any TreeNode with ports must have a constructor with this signature
+    TakeOffAction(const std::string &name, const BT::NodeConfiguration &config)
+        : AsyncActionNode(name, config),
+        ac_(execution_ns_ +  "/takeoff", true)
+    {
+    }
 
-  // It is mandatory to define this static method.
-  static BT::PortsList providedPorts()
+    // It is mandatory to define this static method.
+    static BT::PortsList providedPorts()
+    {
+      // return {BT::InputPort<double>("timeout")};
+    }
+    //The init() method below is used to send arguments which change at run time, to an action 
+    // We want this method to be called ONCE and BEFORE the first tick()
+    // void init( geometry_msgs::PoseStamped moveto_goal_pose, double fraction, double sec)
+    //   // void init( *tank_entrance::MoveToParams paramPtr)
+    //   {
+    //       _moveto_goal_pose = (moveto_goal_pose);
+    //       _fraction = (fraction);
+    //       _sec = (sec);
+    //   }
+
+    BT::NodeStatus tick() override;
+
+    virtual void halt() override;
+
+    void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::TakeOffResultConstPtr& result);
+
+  private:
+    actionlib::SimpleActionClient<behavior_msgs::TakeOffAction> ac_;
+    bool ac_done = false;
+    bool ac_success = false;
+    std::atomic_bool _halt_requested;
+    // geometry_msgs::PoseStamped _moveto_goal_pose;
+    // double _fraction;
+    // double _sec;
+
+  };
+
+
+  //////////////////////////////////////// Everything Else action ////////////////////////////////////////
+
+  // Asynchronous action
+  class PublishLastStablePoseAction : public BT::AsyncActionNode
   {
-    // return {BT::InputPort<double>("timeout")};
-  }
-  //The init() method below is used to send arguments which change at run time, to an action 
-  // We want this method to be called ONCE and BEFORE the first tick()
-  // void init( geometry_msgs::PoseStamped moveto_goal_pose, double fraction, double sec)
-  //   // void init( *tank_entrance::MoveToParams paramPtr)
-  //   {
-  //       _moveto_goal_pose = (moveto_goal_pose);
-  //       _fraction = (fraction);
-  //       _sec = (sec);
-  //   }
+  public:
+    // Any TreeNode with ports must have a constructor with this signature
+    PublishLastStablePoseAction(const std::string &name, const BT::NodeConfiguration &config)
+        : AsyncActionNode(name, config),
+        ac_(execution_ns_ + "/publishlaststablepose", true)
+    {
+    }
 
-  BT::NodeStatus tick() override;
+    // It is mandatory to define this static method.
+    static BT::PortsList providedPorts()
+    {
+      // return {BT::InputPort<double>("timeout")};
+    }
 
-  virtual void halt() override;
+    BT::NodeStatus tick() override;
 
-  void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::TakeOffResultConstPtr& result);
+    virtual void halt() override;
 
-private:
-  actionlib::SimpleActionClient<behavior_msgs::TakeOffAction> ac_;
-  bool ac_done = false;
-  bool ac_success = false;
-  std::atomic_bool _halt_requested;
-  // geometry_msgs::PoseStamped _moveto_goal_pose;
-  // double _fraction;
-  // double _sec;
+    void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::PublishLastStablePoseResultConstPtr& result);
 
-};
+  private:
+    actionlib::SimpleActionClient<behavior_msgs::PublishLastStablePoseAction> ac_;
+    bool ac_done = false;
+    bool ac_success = false;
+    std::atomic_bool _halt_requested;
+  };
 
+  //////////////////////////////////////// Look For Entrance action ////////////////////////////////////////
 
-//////////////////////////////////////// Everything Else action ////////////////////////////////////////
-
-// Asynchronous action
-class EverythingElseAction : public BT::AsyncActionNode
-{
-public:
-  // Any TreeNode with ports must have a constructor with this signature
-  EverythingElseAction(const std::string &name, const BT::NodeConfiguration &config)
-      : AsyncActionNode(name, config),
-      ac_(execution_ns_ + "/everythingelse", true)
+  // Asynchronous action
+  class LookForEntranceAction : public BT::AsyncActionNode
   {
-  }
+  public:
+    // Any TreeNode with ports must have a constructor with this signature
+    LookForEntranceAction(const std::string &name, const BT::NodeConfiguration &config)
+        : AsyncActionNode(name, config),
+        ac_(execution_ns_ +  "/lookforentrance", true)
+    {
+    }
 
-  // It is mandatory to define this static method.
-  static BT::PortsList providedPorts()
+    // It is mandatory to define this static method.
+    static BT::PortsList providedPorts()
+    {
+      // return {BT::InputPort<double>("timeout")};
+    }
+    //The init() method below is used to send arguments which change at run time, to an action 
+    // We want this method to be called ONCE and BEFORE the first tick()
+    // void init( geometry_msgs::PoseStamped moveto_goal_pose, double fraction, double sec)
+    //   // void init( *tank_entrance::MoveToParams paramPtr)
+    //   {
+    //       _moveto_goal_pose = (moveto_goal_pose);
+    //       _fraction = (fraction);
+    //       _sec = (sec);
+    //   }
+
+    BT::NodeStatus tick() override;
+
+    virtual void halt() override;
+
+    void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::LookForEntranceResultConstPtr& result);
+
+  private:
+    actionlib::SimpleActionClient<behavior_msgs::LookForEntranceAction> ac_;
+    bool ac_done = false;
+    bool ac_success = false;
+    std::atomic_bool _halt_requested;
+    // geometry_msgs::PoseStamped _moveto_goal_pose;
+    // double _fraction;
+    // double _sec;
+
+  };
+
+  //////////////////////////////////////// Wait To Confirm Entrance action ////////////////////////////////////////
+
+  // Asynchronous action
+  class WaitToConfirmEntranceAction : public BT::AsyncActionNode
   {
-    // return {BT::InputPort<double>("timeout")};
-  }
+  public:
+    // Any TreeNode with ports must have a constructor with this signature
+    WaitToConfirmEntranceAction(const std::string &name, const BT::NodeConfiguration &config)
+        : AsyncActionNode(name, config),
+        ac_(execution_ns_ +  "/waittoconfirmentrance", true)
+    {
+    }
 
-  BT::NodeStatus tick() override;
+    // It is mandatory to define this static method.
+    static BT::PortsList providedPorts()
+    {
+      // return {BT::InputPort<double>("timeout")};
+    }
+    //The init() method below is used to send arguments which change at run time, to an action 
+    // We want this method to be called ONCE and BEFORE the first tick()
+    // void init( geometry_msgs::PoseStamped moveto_goal_pose, double fraction, double sec)
+    //   // void init( *tank_entrance::MoveToParams paramPtr)
+    //   {
+    //       _moveto_goal_pose = (moveto_goal_pose);
+    //       _fraction = (fraction);
+    //       _sec = (sec);
+    //   }
 
-  virtual void halt() override;
+    BT::NodeStatus tick() override;
 
-  void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::EverythingElseResultConstPtr& result);
+    virtual void halt() override;
 
-private:
-  actionlib::SimpleActionClient<behavior_msgs::EverythingElseAction> ac_;
-  bool ac_done = false;
-  bool ac_success = false;
-  std::atomic_bool _halt_requested;
-};
+    void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::WaitToConfirmEntranceResultConstPtr& result);
+
+  private:
+    actionlib::SimpleActionClient<behavior_msgs::WaitToConfirmEntranceAction> ac_;
+    bool ac_done = false;
+    bool ac_success = false;
+    std::atomic_bool _halt_requested;
+    // geometry_msgs::PoseStamped _moveto_goal_pose;
+    // double _fraction;
+    // double _sec;
+
+  };
+
+    //////////////////////////////////////// Calculate Initial Entrance Point action ////////////////////////////////////////
+
+  // Asynchronous action
+  class GetEntranceFrontPointAndMoveAction : public BT::AsyncActionNode
+  {
+  public:
+    // Any TreeNode with ports must have a constructor with this signature
+    GetEntranceFrontPointAndMoveAction(const std::string &name, const BT::NodeConfiguration &config)
+        : AsyncActionNode(name, config),
+        ac_(execution_ns_ +  "/getentrancefrontpointandmove", true)
+    {
+    }
+
+    // It is mandatory to define this static method.
+    static BT::PortsList providedPorts()
+    {
+      // return {BT::InputPort<double>("timeout")};
+    }
+    //The init() method below is used to send arguments which change at run time, to an action 
+    // We want this method to be called ONCE and BEFORE the first tick()
+    // void init( geometry_msgs::PoseStamped moveto_goal_pose, double fraction, double sec)
+    //   // void init( *tank_entrance::MoveToParams paramPtr)
+    //   {
+    //       _moveto_goal_pose = (moveto_goal_pose);
+    //       _fraction = (fraction);
+    //       _sec = (sec);
+    //   }
+
+    BT::NodeStatus tick() override;
+
+    virtual void halt() override;
+
+    void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::GetEntranceFrontPointAndMoveResultConstPtr& result);
+
+  private:
+    actionlib::SimpleActionClient<behavior_msgs::GetEntranceFrontPointAndMoveAction> ac_;
+    bool ac_done = false;
+    bool ac_success = false;
+    std::atomic_bool _halt_requested;
+    // geometry_msgs::PoseStamped _moveto_goal_pose;
+    // double _fraction;
+    // double _sec;
+
+  };
+
+  //////////////////////////////////////// Correct Pose action ////////////////////////////////////////
+
+  // Asynchronous action
+  class CorrectPoseAction : public BT::AsyncActionNode
+  {
+  public:
+    // Any TreeNode with ports must have a constructor with this signature
+    CorrectPoseAction(const std::string &name, const BT::NodeConfiguration &config)
+        : AsyncActionNode(name, config),
+        ac_(execution_ns_ +  "/correctpose", true)
+    {
+    }
+
+    // It is mandatory to define this static method.
+    static BT::PortsList providedPorts()
+    {
+      // return {BT::InputPort<double>("timeout")};
+    }
+    //The init() method below is used to send arguments which change at run time, to an action 
+    // We want this method to be called ONCE and BEFORE the first tick()
+    // void init( geometry_msgs::PoseStamped moveto_goal_pose, double fraction, double sec)
+    //   // void init( *tank_entrance::MoveToParams paramPtr)
+    //   {
+    //       _moveto_goal_pose = (moveto_goal_pose);
+    //       _fraction = (fraction);
+    //       _sec = (sec);
+    //   }
+
+    BT::NodeStatus tick() override;
+
+    virtual void halt() override;
+
+    void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::CorrectPoseResultConstPtr& result);
+
+  private:
+    actionlib::SimpleActionClient<behavior_msgs::CorrectPoseAction> ac_;
+    bool ac_done = false;
+    bool ac_success = false;
+    std::atomic_bool _halt_requested;
+    // geometry_msgs::PoseStamped _moveto_goal_pose;
+    // double _fraction;
+    // double _sec;
+
+  };
+
+
+  //////////////////////////////////////// Correct Pose action ////////////////////////////////////////
+
+  // Asynchronous action
+  class EnterTankAction : public BT::AsyncActionNode
+  {
+  public:
+    // Any TreeNode with ports must have a constructor with this signature
+    EnterTankAction(const std::string &name, const BT::NodeConfiguration &config)
+        : AsyncActionNode(name, config),
+        ac_(execution_ns_ +  "/entertank", true)
+    {
+    }
+
+    // It is mandatory to define this static method.
+    static BT::PortsList providedPorts()
+    {
+      // return {BT::InputPort<double>("timeout")};
+    }
+    //The init() method below is used to send arguments which change at run time, to an action 
+    // We want this method to be called ONCE and BEFORE the first tick()
+    // void init( geometry_msgs::PoseStamped moveto_goal_pose, double fraction, double sec)
+    //   // void init( *tank_entrance::MoveToParams paramPtr)
+    //   {
+    //       _moveto_goal_pose = (moveto_goal_pose);
+    //       _fraction = (fraction);
+    //       _sec = (sec);
+    //   }
+
+    BT::NodeStatus tick() override;
+
+    virtual void halt() override;
+
+    void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::EnterTankResultConstPtr& result);
+
+  private:
+    actionlib::SimpleActionClient<behavior_msgs::EnterTankAction> ac_;
+    bool ac_done = false;
+    bool ac_success = false;
+    std::atomic_bool _halt_requested;
+    // geometry_msgs::PoseStamped _moveto_goal_pose;
+    // double _fraction;
+    // double _sec;
+
+  };
+
+
+  //////////////////////////////////////// Land action ////////////////////////////////////////
+
+  // Asynchronous action
+  class LandAction : public BT::AsyncActionNode
+  {
+  public:
+    // Any TreeNode with ports must have a constructor with this signature
+    LandAction(const std::string &name, const BT::NodeConfiguration &config)
+        : AsyncActionNode(name, config),
+        ac_(execution_ns_ +  "/land", true)
+    {
+    }
+
+    // It is mandatory to define this static method.
+    static BT::PortsList providedPorts()
+    {
+      // return {BT::InputPort<double>("timeout")};
+    }
+    //The init() method below is used to send arguments which change at run time, to an action 
+    // We want this method to be called ONCE and BEFORE the first tick()
+    // void init( geometry_msgs::PoseStamped moveto_goal_pose, double fraction, double sec)
+    //   // void init( *tank_entrance::MoveToParams paramPtr)
+    //   {
+    //       _moveto_goal_pose = (moveto_goal_pose);
+    //       _fraction = (fraction);
+    //       _sec = (sec);
+    //   }
+
+    BT::NodeStatus tick() override;
+
+    virtual void halt() override;
+
+    void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::LandResultConstPtr& result);
+
+  private:
+    actionlib::SimpleActionClient<behavior_msgs::LandAction> ac_;
+    bool ac_done = false;
+    bool ac_success = false;
+    std::atomic_bool _halt_requested;
+    // geometry_msgs::PoseStamped _moveto_goal_pose;
+    // double _fraction;
+    // double _sec;
+
+  };
+
+
+//////////////////////////////////////// Demo Path action ////////////////////////////////////////
+
+  // Asynchronous action
+  class DemoPathAction : public BT::AsyncActionNode
+  {
+  public:
+    // Any TreeNode with ports must have a constructor with this signature
+    DemoPathAction(const std::string &name, const BT::NodeConfiguration &config)
+        : AsyncActionNode(name, config),
+        ac_(execution_ns_ +  "/demopath", true)
+    {
+    }
+
+    // It is mandatory to define this static method.
+    static BT::PortsList providedPorts()
+    {
+      // return {BT::InputPort<double>("timeout")};
+    }
+    //The init() method below is used to send arguments which change at run time, to an action 
+    // We want this method to be called ONCE and BEFORE the first tick()
+    // void init( geometry_msgs::PoseStamped moveto_goal_pose, double fraction, double sec)
+    //   // void init( *tank_entrance::MoveToParams paramPtr)
+    //   {
+    //       _moveto_goal_pose = (moveto_goal_pose);
+    //       _fraction = (fraction);
+    //       _sec = (sec);
+    //   }
+
+    BT::NodeStatus tick() override;
+
+    virtual void halt() override;
+
+    void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::DemoPathResultConstPtr& result);
+
+  private:
+    actionlib::SimpleActionClient<behavior_msgs::DemoPathAction> ac_;
+    bool ac_done = false;
+    bool ac_success = false;
+    std::atomic_bool _halt_requested;
+    // geometry_msgs::PoseStamped _moveto_goal_pose;
+    // double _fraction;
+    // double _sec;
+
+  };
+
+
+  //////////////////////////////////////// Mapping Template action ////////////////////////////////////////
+
+  // Asynchronous action
+  class MappingTemplateAction : public BT::AsyncActionNode
+  {
+  public:
+    // Any TreeNode with ports must have a constructor with this signature
+    MappingTemplateAction(const std::string &name, const BT::NodeConfiguration &config)
+        : AsyncActionNode(name, config),
+        ac_(execution_ns_ +  "/mappingtemplate", true)
+    {
+    }
+
+    // It is mandatory to define this static method.
+    static BT::PortsList providedPorts()
+    {
+      // return {BT::InputPort<double>("timeout")};
+    }
+    //The init() method below is used to send arguments which change at run time, to an action 
+    // We want this method to be called ONCE and BEFORE the first tick()
+    // void init( geometry_msgs::PoseStamped moveto_goal_pose, double fraction, double sec)
+    //   // void init( *tank_entrance::MoveToParams paramPtr)
+    //   {
+    //       _moveto_goal_pose = (moveto_goal_pose);
+    //       _fraction = (fraction);
+    //       _sec = (sec);
+    //   }
+
+    BT::NodeStatus tick() override;
+
+    virtual void halt() override;
+
+    void doneCB(const actionlib::SimpleClientGoalState& state, const behavior_msgs::MappingTemplateResultConstPtr& result);
+
+  private:
+    actionlib::SimpleActionClient<behavior_msgs::MappingTemplateAction> ac_;
+    bool ac_done = false;
+    bool ac_success = false;
+    std::atomic_bool _halt_requested;
+    // geometry_msgs::PoseStamped _moveto_goal_pose;
+    // double _fraction;
+    // double _sec;
+
+  };
 
 
 } // end namespace MAVInspectionNodes

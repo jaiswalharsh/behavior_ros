@@ -20,7 +20,8 @@
   <depend>std_msgs</depend>
   <depend>behavior_msgs</depend>
   <depend>inspectrone_library</depend>
-  <!-- <depend>tank_entrance</depend> -->
+    
+  
 
   <depend>rviz</depend>
 

@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <Fallback>
+            <ReactiveSequence>
+                <Condition ID="Continue"/>
+                <Condition ID="IsBatteryOK"/>
+                <Sequence>
+                    <Action ID="TakeOff"/>
+                    <SubTree ID="tank entrance"/>
+                    <Action ID="DemoPath"/>
+                    <SubTree ID="tank entrance"/>
+                    <Action ID="Land"/>
+                </Sequence>
+            </ReactiveSequence>
+        </Fallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="tank entrance">
+        <Sequence>
+            <RetryUntilSuccesful num_attempts="10">
+                <Sequence>
+                    <Action ID="LookForEntrance"/>
+                    <Action ID="WaitToConfirmEntrance"/>
+                </Sequence>
+            </RetryUntilSuccesful>
+            <Action ID="GetEntranceFrontPointAndMove"/>
+            <Action ID="CorrectPose"/>
+            <Action ID="EnterTank"/>
+        </Sequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Condition ID="Continue"/>
+        <Action ID="CorrectPose"/>
+        <Action ID="DemoPath"/>
+        <Action ID="EnterTank"/>
+        <Action ID="GetEntranceFrontPointAndMove"/>
+        <Condition ID="IsBatteryOK"/>
+        <Action ID="Land"/>
+        <Action ID="LookForEntrance"/>
+        <Action ID="PublishLastStablePose"/>
+        <Action ID="TakeOff"/>
+        <Action ID="WaitToConfirmEntrance"/>
+        <SubTree ID="tank entrance"/>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
+

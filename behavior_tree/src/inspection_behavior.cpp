@@ -36,7 +36,17 @@ InspectionBehavior::InspectionBehavior(ros::NodeHandle& nh, ros::NodeHandle& pnh
   MAVInspectionNodes::setBatteryPtr(&battery_msg);
   MAVInspectionNodes::setBatteryLimit(20.0); // Remaining capacity percentage
   factory.registerNodeType<MAVInspectionNodes::TakeOffAction>("TakeOff");
-  factory.registerNodeType<MAVInspectionNodes::EverythingElseAction>("EverythingElse");
+  factory.registerNodeType<MAVInspectionNodes::PublishLastStablePoseAction>("PublishLastStablePose");
+  factory.registerNodeType<MAVInspectionNodes::LookForEntranceAction>("LookForEntrance");
+  factory.registerNodeType<MAVInspectionNodes::WaitToConfirmEntranceAction>("WaitToConfirmEntrance");
+  factory.registerNodeType<MAVInspectionNodes::GetEntranceFrontPointAndMoveAction>("GetEntranceFrontPointAndMove");
+  factory.registerNodeType<MAVInspectionNodes::CorrectPoseAction>("CorrectPose");
+  factory.registerNodeType<MAVInspectionNodes::EnterTankAction>("EnterTank");
+  factory.registerNodeType<MAVInspectionNodes::LandAction>("Land");
+  factory.registerNodeType<MAVInspectionNodes::DemoPathAction>("DemoPath");
+  factory.registerNodeType<MAVInspectionNodes::MappingTemplateAction>("MappingTemplate");
+
+
   // Create the tree
   tree = factory.createTreeFromFile(tree_xml_path_);
   tree_status = BT::NodeStatus::RUNNING;
@@ -86,7 +96,7 @@ InspectionBehavior::InspectionBehavior(ros::NodeHandle& nh, ros::NodeHandle& pnh
 //   for( auto& node: tree.nodes )
 // {
 //     // Not a typo: it is "=", not "=="
-//     if( auto action_moveto = dynamic_cast<MAVInspectionNodes::MoveToAction*>( node.get() ))
+//     if( auto action_moveto = <MAVInspectionNodes::MoveToAction*>( node.get() ))
 //     {
 
 //         action_moveto->init( moveto_goal_pose, fraction, sec);

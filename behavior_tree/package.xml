@@ -21,6 +21,6 @@
   <depend>diagnostic_msgs</depend>
   <depend>behavior_msgs</depend>
   <depend>rviz</depend>
-  <!-- <depend>inspectrone_library</depend> -->
+  
 
 </package>

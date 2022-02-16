@@ -26,7 +26,15 @@ add_action_files(
                 action
         FILES
                 TakeOff.action
-                EverythingElse.action
+                PublishLastStablePose.action
+                LookForEntrance.action
+                WaitToConfirmEntrance.action
+                GetEntranceFrontPointAndMove.action
+                CorrectPose.action
+                EnterTank.action
+                Land.action
+                DemoPath.action
+                MappingTemplate.action
 )
 
 generate_messages(

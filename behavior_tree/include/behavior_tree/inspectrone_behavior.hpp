@@ -33,13 +33,13 @@ public:
   void tickTree(const ros::TimerEvent& event);
 
   // Public variables and objects
-  struct MoveToParams;    
-  struct MoveToParams
-  {
-      geometry_msgs::PoseStamped moveto_goal_pose;
-      double fraction = 1.0;
-      double sec = 5.0;
-  }params;
+  // struct MoveToParams;    
+  // struct MoveToParams
+  // {
+  //     geometry_msgs::PoseStamped moveto_goal_pose;
+  //     double fraction = 1.0;
+  //     double sec = 5.0;
+  // }params;
   
 private:
   // Private functions

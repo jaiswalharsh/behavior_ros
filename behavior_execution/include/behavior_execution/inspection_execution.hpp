@@ -8,11 +8,19 @@
 
 #include <geometry_msgs/TransformStamped.h>
 
-#include <behavior_msgs/EverythingElseAction.h>
+#include <behavior_msgs/PublishLastStablePoseAction.h>
 #include <behavior_msgs/TakeOffAction.h>
+#include <behavior_msgs/LookForEntranceAction.h>
+#include <behavior_msgs/WaitToConfirmEntranceAction.h>
+#include <behavior_msgs/GetEntranceFrontPointAndMoveAction.h>
+#include <behavior_msgs/CorrectPoseAction.h>
+#include <behavior_msgs/EnterTankAction.h>
+#include <behavior_msgs/LandAction.h>
+#include <behavior_msgs/DemoPathAction.h>
+#include <behavior_msgs/MappingTemplateAction.h>
 
-// ################## Tank entrance include statements
 #include <geometry_msgs/PoseStamped.h>
+#include <std_msgs/UInt8.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
@@ -20,48 +28,40 @@
 
 
 #include <unistd.h>
-#include <termios.h>
 // #include <conio.h>
 #include <iostream>
-#include <sys/ioctl.h>
-
 
 // Define class
 class InspectionExecution {
 public:
   // Constructor and destructor
-  // ##########################Enter tank public params
-  InspectionExecution(ros::NodeHandle*, ros::NodeHandle, ros::Rate);
+  InspectionExecution(ros::NodeHandle* nh, ros::NodeHandle& pnh, ros::Rate);
   ~InspectionExecution();
   void state_cb(const mavros_msgs::State::ConstPtr&);
   void pose_cb(const geometry_msgs::PoseStamped::ConstPtr&);
   void entrance_frontPoint_cb(const geometry_msgs::TransformStamped tf_w_entrance_frontPoint);
-  
-  void mainLoop();
-  // void takeoff(geometry_msgs::PoseStamped);
-  bool moveTo(geometry_msgs::PoseStamped, ros::Publisher*, double = 1.0, double = 5.0);
-  char getch();
-  bool kbhit();
+  // bool moveTo(geometry_msgs::PoseStamped, ros::Publisher*, double = 1.0, double = 5.0);
+  bool moveTo(geometry_msgs::PoseStamped, ros::Publisher*, double = 1.0, double = 5.0, std::string = "default");
   void holdPositionIfPaused();
-  void lookForEntrance();
-  void confirmEntrance();
-  void askToRepeat();
+  // void askToRepeat();
   void correctPose();
-  void waitToConfirmEntrance();
   void setCorrectionFlag();
   void updateEntranceFrontPoint();
-  void calculateInitialEntrancePoint();
+  bool isPositionReached(geometry_msgs::PoseStamped);
+  void updateRobotState();
   // void setGoal(geometry_msgs::PoseStamped&, double, double);
   
   int stage;
   ros::Rate* rate;
   double rateHz = 20;
   int correctionNo = 0;
-  int requiredCorrectionNo = 4;
+  int requiredCorrectionNo;
   double fraction = 1.0;
+  double position_tolerance_;
+  double moveSpeed;
 
   mavros_msgs::State current_state;
-  geometry_msgs::PoseStamped current_pose, endPose, endPose2;
+  geometry_msgs::PoseStamped current_pose, endPose, endPose2, endPose3, landPose;
   geometry_msgs::PoseStamped pose_entrance_frontPoint;
   geometry_msgs::PoseStamped new_pose_entrance_frontPoint;
   
@@ -76,17 +76,19 @@ public:
   bool paused = false;
   bool outsideTank = true;
   bool tookOff = false;
+  bool inMovement = false;
 
-  // Tank entrance public params end
   
 private:
 
-  // enter tank private params
   char kb_input = 0;
+  std_msgs::UInt8 led_on_value;
+  std_msgs::UInt8 led_off_value;
 
   geometry_msgs::PoseStamped takeoff_pose, pose2, lastStablePose;
   mavros_msgs::SetMode offb_set_mode;
   mavros_msgs::CommandBool arm_cmd;
+  mavros_msgs::CommandBool disarm_cmd;
   ros::Time last_request, last_action;
 
   // ROS Publishers, Subscribers and Services
@@ -94,28 +96,55 @@ private:
   ros::Subscriber local_pos_sub;
   ros::Subscriber entranceFrontpoint_sub;
   ros::Publisher local_pos_pub;
+  ros::Publisher led_pub;
   ros::ServiceClient arming_client;
   ros::ServiceClient set_mode_client;
-  // tank entrance private params end
 
-  actionlib::SimpleActionServer<behavior_msgs::EverythingElseAction> as_everythingelse;
+  actionlib::SimpleActionServer<behavior_msgs::PublishLastStablePoseAction> as_publishlaststablepose;
   actionlib::SimpleActionServer<behavior_msgs::TakeOffAction> as_takeoff;
+  actionlib::SimpleActionServer<behavior_msgs::LookForEntranceAction> as_lookforentrance;
+  actionlib::SimpleActionServer<behavior_msgs::WaitToConfirmEntranceAction> as_waittoconfirmentrance;
+  actionlib::SimpleActionServer<behavior_msgs::GetEntranceFrontPointAndMoveAction> as_getentrancefrontpointandmove;
+  actionlib::SimpleActionServer<behavior_msgs::CorrectPoseAction> as_correctpose;
+  actionlib::SimpleActionServer<behavior_msgs::EnterTankAction> as_entertank;
+  actionlib::SimpleActionServer<behavior_msgs::LandAction> as_land;
+  actionlib::SimpleActionServer<behavior_msgs::DemoPathAction> as_demopath;
+  actionlib::SimpleActionServer<behavior_msgs::MappingTemplateAction> as_mappingtemplate;
 
-  // Private functions
-  bool asEverythingElseStatus();
+  // Action methods
+  bool asPublishLastStablePoseStatus();
   bool asTakeOffStatus();
-  bool as_everythingelse_continue;
+  bool asLookForEntranceStatus();
+  bool asWaitToConfirmEntranceStatus();
+  bool asGetEntranceFrontPointAndMoveStatus();
+  bool asCorrectPoseStatus();
+  bool asEnterTankStatus();
+  bool asLandStatus();
+  bool asDemoPathStatus();
+  bool asMappingTemplateStatus();
+  bool as_publishlaststablepose_continue;
   bool as_takeoff_continue;
-  void asEverythingElseExecute(const behavior_msgs::EverythingElseGoalConstPtr& goal);
+  bool as_lookforentrance_continue;
+  void asPublishLastStablePoseExecute(const behavior_msgs::PublishLastStablePoseGoalConstPtr& goal);
   void asTakeOffExecute(const behavior_msgs::TakeOffGoalConstPtr& goal);
+  void asLookForEntranceExecute(const behavior_msgs::LookForEntranceGoalConstPtr& goal);
+  void asWaitToConfirmEntranceExecute(const behavior_msgs::WaitToConfirmEntranceGoalConstPtr& goal);
+  void asGetEntranceFrontPointAndMoveExecute(const behavior_msgs::GetEntranceFrontPointAndMoveGoalConstPtr& goal);
+  void asCorrectPoseExecute(const behavior_msgs::CorrectPoseGoalConstPtr& goal);
+  void asEnterTankExecute(const behavior_msgs::EnterTankGoalConstPtr& goal);
+  void asLandExecute(const behavior_msgs::LandGoalConstPtr& goal);
+  void asDemoPathExecute(const behavior_msgs::DemoPathGoalConstPtr& goal);
+  void asMappingTemplateExecute(const behavior_msgs::MappingTemplateGoalConstPtr& goal);
+
+
 
   // Private variables and objects
-  ros::NodeHandle nh_;
+  ros::NodeHandle *nh_;
   ros::NodeHandle pnh_;
 
-  std::string exploration_planner_ns_;
-  std::string global_planner_ns_;
-  std::string local_planner_ns_;
+  // std::string exploration_planner_ns_;
+  // std::string global_planner_ns_;
+  // std::string local_planner_ns_;
 
 };
 
